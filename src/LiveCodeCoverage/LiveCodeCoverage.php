@@ -15,12 +15,12 @@ final class LiveCodeCoverage
     /**
      * @var CodeCoverage
      */
-    private $codeCoverage;
+    private CodeCoverage $codeCoverage;
 
     /**
      * @var string
      */
-    private $storageDirectory;
+    private string $storageDirectory;
 
     private function __construct(CodeCoverage $codeCoverage, $storageDirectory, $coverageId)
     {
@@ -34,9 +34,9 @@ final class LiveCodeCoverage
      * @param string $storageDirectory
      * @param string|null $phpunitConfigFilePath
      * @param string $coverageId
-     * @return callable
+     * @return callable|array|\Closure
      */
-    public static function bootstrap($collectCodeCoverage, $storageDirectory, $phpunitConfigFilePath = null, $coverageId = 'live-coverage')
+    public static function bootstrap(bool $collectCodeCoverage, string $storageDirectory, string $phpunitConfigFilePath = null, string $coverageId = 'live-coverage'): callable|array|\Closure
     {
         Assert::boolean($collectCodeCoverage);
         if (!$collectCodeCoverage) {
@@ -59,7 +59,7 @@ final class LiveCodeCoverage
         return [$liveCodeCoverage, 'stopAndSave'];
     }
 
-    private function start()
+    private function start(): void
     {
         $this->codeCoverage->start($this->coverageId);
     }
@@ -67,7 +67,7 @@ final class LiveCodeCoverage
     /**
      * Stop collecting code coverage data and save it.
      */
-    public function stopAndSave()
+    public function stopAndSave(): void
     {
         $this->codeCoverage->stop();
 

@@ -15,7 +15,7 @@ final class CodeCoverageFactory
      * @param string $phpunitFilePath
      * @return CodeCoverage
      */
-    public static function createFromPhpUnitConfiguration($phpunitFilePath)
+    public static function createFromPhpUnitConfiguration(string $phpunitFilePath): CodeCoverage
     {
         $codeCoverage = self::createDefault();
 
@@ -25,8 +25,9 @@ final class CodeCoverageFactory
         return $codeCoverage;
     }
 
-    private static function configure(CodeCoverage $codeCoverage, Configuration $configuration)
+    private static function configure(CodeCoverage $codeCoverage, Configuration $configuration): void
     {
+        $codeCoverageFilter = $codeCoverage->filter();
         $codeCoverageConfiguration = $configuration->codeCoverage();
 
         // The following code is copied from PHPUnit\TextUI\TestRunner
@@ -37,24 +38,42 @@ final class CodeCoverageFactory
                 $codeCoverage->excludeUncoveredFiles();
             }
 
-            if ($codeCoverageConfiguration->processUncoveredFiles()) {
-                $codeCoverage->processUncoveredFiles();
+            if ($codeCoverageConfiguration->disableCodeCoverageIgnore()) {
+                $codeCoverage->ignoreDeprecatedCode();
             } else {
-                $codeCoverage->doNotProcessUncoveredFiles();
+                $codeCoverage->doNotIgnoreDeprecatedCode();
             }
         }
 
-        /*
-         * `FilterMapper` is not covered by PHPUnit's backward-compatibility promise, but let's use it instead of
-         * copying it.
-         */
-        (new FilterMapper())->map($codeCoverage->filter(), $configuration->codeCoverage());
+        foreach ($codeCoverageConfiguration->directories() as $directory) {
+            $codeCoverageFilter->includeDirectory(
+                $directory->path(),
+                $directory->suffix(),
+                $directory->prefix()
+            );
+        }
+
+        foreach ($codeCoverageConfiguration->files() as $file) {
+            $codeCoverageFilter->includeFile($file->path());
+        }
+
+        foreach ($codeCoverageConfiguration->excludeDirectories() as $directory) {
+            $codeCoverageFilter->excludeDirectory(
+                $directory->path(),
+                $directory->suffix(),
+                $directory->prefix()
+            );
+        }
+
+        foreach ($codeCoverageConfiguration->excludeFiles() as $file) {
+            $codeCoverageFilter->excludeFile($file->path());
+        }
     }
 
     /**
      * @return CodeCoverage
      */
-    public static function createDefault()
+    public static function createDefault(): CodeCoverage
     {
         $filter = new Filter();
         $driverSelector = new Selector();

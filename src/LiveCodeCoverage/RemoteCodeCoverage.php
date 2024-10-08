@@ -56,7 +56,7 @@ final class RemoteCodeCoverage
      * @param string $coverageDirectory
      * @return string
      */
-    public static function exportCoverageData($coverageDirectory)
+    public static function exportCoverageData(string $coverageDirectory): string
     {
         $codeCoverage = Storage::loadFromDirectory($coverageDirectory);
 

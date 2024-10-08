@@ -1,5 +1,7 @@
 <?php
 
+namespace functional;
+
 use PHPUnit\Framework\TestCase;
 use SebastianBergmann\CodeCoverage\CodeCoverage;
 use Symfony\Component\Filesystem\Filesystem;
@@ -8,7 +10,7 @@ use Symfony\Component\Process\Process;
 
 final class LiveCodeCoverageTest extends TestCase
 {
-    private $coverageDirectory;
+    private string $coverageDirectory;
 
     protected function setUp(): void
     {
@@ -33,7 +35,6 @@ final class LiveCodeCoverageTest extends TestCase
         $this->assertProcessSuccessful($aProcess);
         $this->assertProcessSuccessful($bProcess);
 
-        /** @var Finder $finder */
         $finder = Finder::create()->name('*.cov')->in([$this->coverageDirectory]);
         self::assertCount(2, $finder);
 
@@ -46,13 +47,13 @@ final class LiveCodeCoverageTest extends TestCase
     /**
      * @param $filePath
      */
-    private function assertIncludedFileReturnsCodeCoverageObject($filePath)
+    private function assertIncludedFileReturnsCodeCoverageObject($filePath): void
     {
         $cov = include $filePath;
         $this->assertInstanceOf(CodeCoverage::class, $cov);
     }
 
-    private function assertProcessSuccessful(Process $process)
+    private function assertProcessSuccessful(Process $process): void
     {
         if (!$process->isSuccessful()) {
             $this->fail(
