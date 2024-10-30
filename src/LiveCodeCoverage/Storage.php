@@ -16,7 +16,7 @@ final class Storage
      * @return void
      * @throws \RuntimeException
      */
-    public static function storeCodeCoverage(CodeCoverage $coverage, $storageDirectory, $name)
+    public static function storeCodeCoverage(CodeCoverage $coverage, string $storageDirectory, $name): void
     {
         Assert::string($storageDirectory);
 
@@ -36,7 +36,7 @@ final class Storage
      * @param string $storageDirectory
      * @return CodeCoverage
      */
-    public static function loadFromDirectory($storageDirectory)
+    public static function loadFromDirectory(string $storageDirectory): CodeCoverage
     {
         Assert::string($storageDirectory);
 

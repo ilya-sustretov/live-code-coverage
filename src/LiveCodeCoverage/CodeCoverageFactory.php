@@ -2,11 +2,11 @@
 
 namespace LiveCodeCoverage;
 
-use PHPUnit\TextUI\XmlConfiguration\CodeCoverage\FilterMapper;
 use PHPUnit\TextUI\XmlConfiguration\Configuration;
 use PHPUnit\TextUI\XmlConfiguration\Loader;
 use SebastianBergmann\CodeCoverage\CodeCoverage;
 use SebastianBergmann\CodeCoverage\Driver\Selector;
+use SebastianBergmann\FileIterator\Facade as FileIteratorFacade;
 use SebastianBergmann\CodeCoverage\Filter;
 
 final class CodeCoverageFactory
@@ -15,7 +15,7 @@ final class CodeCoverageFactory
      * @param string $phpunitFilePath
      * @return CodeCoverage
      */
-    public static function createFromPhpUnitConfiguration($phpunitFilePath)
+    public static function createFromPhpUnitConfiguration(string $phpunitFilePath): CodeCoverage
     {
         $codeCoverage = self::createDefault();
 
@@ -25,8 +25,9 @@ final class CodeCoverageFactory
         return $codeCoverage;
     }
 
-    private static function configure(CodeCoverage $codeCoverage, Configuration $configuration)
+    private static function configure(CodeCoverage $codeCoverage, Configuration $configuration): void
     {
+        $files = [];
         $codeCoverageConfiguration = $configuration->codeCoverage();
 
         // The following code is copied from PHPUnit\TextUI\TestRunner
@@ -36,25 +37,37 @@ final class CodeCoverageFactory
             } else {
                 $codeCoverage->excludeUncoveredFiles();
             }
+        }
 
-            if ($codeCoverageConfiguration->processUncoveredFiles()) {
-                $codeCoverage->processUncoveredFiles();
-            } else {
-                $codeCoverage->doNotProcessUncoveredFiles();
+        foreach ($configuration->source()->includeDirectories() as $directoryToInclude => $details) {
+            foreach ((new FileIteratorFacade())->getFilesAsArray($directoryToInclude, '.php') as $fileToInclude) {
+                $files[realpath($fileToInclude)] = realpath($fileToInclude);
             }
         }
 
-        /*
-         * `FilterMapper` is not covered by PHPUnit's backward-compatibility promise, but let's use it instead of
-         * copying it.
-         */
-        (new FilterMapper())->map($codeCoverage->filter(), $configuration->codeCoverage());
+        foreach ($configuration->source()->includeFiles() as $fileToInclude) {
+            $files[$fileToInclude->path()] = $fileToInclude;
+        }
+
+        foreach ($configuration->source()->excludeDirectories() as $directoryToExclude => $details) {
+            foreach ((new FileIteratorFacade())->getFilesAsArray($directoryToExclude,'.php') as $fileToExclude) {
+                unset($files[$fileToExclude]);
+            }
+        }
+
+        foreach ($configuration->source()->excludeFiles() as $fileToExclude) {
+            unset($files[realpath($fileToExclude->path())]);
+        }
+
+        foreach ($files as $file) {
+            $codeCoverage->filter()->includeFile($file);
+        }
     }
 
     /**
      * @return CodeCoverage
      */
-    public static function createDefault()
+    public static function createDefault(): CodeCoverage
     {
         $filter = new Filter();
         $driverSelector = new Selector();

@@ -16,10 +16,10 @@ final class RemoteCodeCoverage
      *
      * @param bool $coverageEnabled Whether or not code coverage should be enabled
      * @param string $storageDirectory Where to store the generated coverage data files
-     * @param string $phpunitConfigFilePath The path to the PHPUnit XML file containing the coverage filter configuration
-     * @return callable Call this value at the end of the request life cycle.
+     * @param string|null $phpunitConfigFilePath The path to the PHPUnit XML file containing the coverage filter configuration
+     * @return callable|\Closure Call this value at the end of the request life cycle.
      */
-    public static function bootstrap($coverageEnabled, $storageDirectory, $phpunitConfigFilePath = null)
+    public static function bootstrap(bool $coverageEnabled, string $storageDirectory, string $phpunitConfigFilePath = null): callable|\Closure
     {
         Assert::boolean($coverageEnabled);
         if (!$coverageEnabled) {
@@ -56,7 +56,7 @@ final class RemoteCodeCoverage
      * @param string $coverageDirectory
      * @return string
      */
-    public static function exportCoverageData($coverageDirectory)
+    public static function exportCoverageData(string $coverageDirectory): string
     {
         $codeCoverage = Storage::loadFromDirectory($coverageDirectory);
 
